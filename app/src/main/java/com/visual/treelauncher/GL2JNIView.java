@@ -16,7 +16,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 class GL2JNIView extends GLSurfaceView {
     private static String TAG = "GL2JNIView";
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private final float TOUCH_SCALE_FACTOR = 180.0f / 320;
     private float mPreviousX;
     private float mPreviousY;
@@ -26,7 +26,7 @@ class GL2JNIView extends GLSurfaceView {
 
     public GL2JNIView(Context context) {
         super(context);
-        init(false, 0, 0);
+        init(false, 24, 0);
     }
 
     public GL2JNIView(Context context, boolean translucent, int depth, int stencil) {
@@ -46,6 +46,7 @@ class GL2JNIView extends GLSurfaceView {
                 float dy = y - mPreviousY;
                 mDeltaX = dx;
                 mDeltaY = -dy;
+                break;
         }
 
         mPreviousX = x;

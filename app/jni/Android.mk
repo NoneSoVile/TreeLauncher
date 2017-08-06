@@ -11,6 +11,7 @@ include $(CLEAR_VARS)
 LOCAL_CFLAGS    := -Werror
 LOCAL_MODULE    := treelaunchergraphics
 LOCAL_SRC_FILES := launcher-jni.cpp  \
+                    Tree.cpp            \
                    baseGraphics\NvAssetLoaderAndroid.cpp  \
                    baseGraphics\NvGLSLProgram.cpp   \
                    baseGraphics\ColorBlock.cpp   \
@@ -19,6 +20,12 @@ LOCAL_SRC_FILES := launcher-jni.cpp  \
                    baseGraphics\NvImage.cpp  \
                    baseGraphics\NvImageDDS.cpp \
                    baseGraphics\NvImageGL.cpp  \
+                   Model\NvModel.cpp            \
+                   Model\NvModelObj.cpp     \
+                   Model\NvModelGL.cpp   \
+                   baseShapes\Ray.cpp \
+                   baseShapes\Triangle.cpp \
+                   baseShapes\IntrRayTriangle.cpp \
 
 LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv2 -ljnigraphics
 LOCAL_STATIC_LIBRARIES := cpufeatures

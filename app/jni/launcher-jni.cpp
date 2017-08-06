@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>
 #include <baseGraphics/NvAssetLoader.h>
 #include "launcher-jni.h"
 #include <android/asset_manager_jni.h>
@@ -20,9 +20,12 @@
 #include <baseGraphics/NvMath.h>
 #include <baseGraphics/NvGLSLProgram.h>
 #include <baseGraphics/NvImageGL.h>
-nv::matrix4<float>  cc;
+#include "Tree.h"
+nv::matrix4<float>  mvp;
+nv::matrix4<float>  scaleM;
 using nv::matrix4f;
 using nv::vec4f;
+Tree tree;
 
 float m_PreviousX, m_PreviousY, m_DeltaX, m_DeltaY;
 float mAngleY = 0.0f, mAngleX = 0.0f;
@@ -95,21 +98,38 @@ bool setupGraphics(int w, int h) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, 0);
     checkGlError("xx");
+    tree.initModel();
+
+    glClearDepthf(1.0f);         //  深度缓存设置
+    glEnable(GL_DEPTH_TEST);       //  打开深度测试
+    glDepthFunc(GL_LEQUAL);        //  设置深度测试类型
+    glDepthMask(GL_TRUE);
+    glDepthRangef(0.0f, 1.0f);
 
     return true;
 }
 
 
-void updateTouchParameters(int previousX, int previousY, int deltaX, int deltaY)
+void updateTouchParameters(int x, int y, int deltaX, int deltaY)
 {
-    LOGI("touchEvent(%d, %d, %d, %d)", previousX, previousY, deltaX, deltaY);
+    LOGI("touchEvent(%d, %d, %d, %d)", x, y, deltaX, deltaY);
 
-    m_PreviousX = previousX;
-    m_PreviousY = previousY;
+    m_PreviousX = x;
+    m_PreviousY = y;
     m_DeltaX = deltaX;
     m_DeltaY = deltaY;
     mAngleX += deltaY * 0.01f;
     mAngleY -= deltaX * 0.01f;
+
+    float depth = 0.0;
+    glReadPixels(x,//x坐标
+                m_ScreenHeight - y,//y坐标
+                 1,1,//读取一个像素
+                 GL_DEPTH_COMPONENT,//获得深度信息
+                 GL_FLOAT,//数据类型为浮点型
+                 &depth);//获得的深度值保存在winZ中
+    LOGI("depth = %f", depth);
+    checkGlError("glReadPixels");
 
 }
 
@@ -123,23 +143,7 @@ static const float RECT_COORDS[] = {
         1.0f, -1.0f, -0.0f, 1.0f,          1.0f, 0.0f,
         -1.0f,  1.0f, -0.0f, 1.0f,          0.0f, 1.0f,
          1.0f,  1.0f, -0.0f, 1.0f,          1.0f, 1.0f,};
-
-void renderFrame() {
-    cc.make_identity();
-    matrix4f tmp;
-    cc = nv::rotationY(tmp, mAngleY);
-    tmp.make_identity();
-    cc = cc *  nv::rotationX(tmp, mAngleX);
-
-    glClearColor(0.0, 0, 0, 1.0f);
-    glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-    mTriangleProgram->enable();
-    checkGlError("glUseProgram");
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_TexID);
-    glUniform1i(mTriangleProgram->texUHandle, 0);
-    mTriangleProgram->setUniformMatrix4fv("uMVP", cc._array, 1, GL_FALSE);
+void drawQuad(){
     glVertexAttribPointer(mTriangleProgram->positionAHandle, 4, GL_FLOAT, GL_FALSE, 6* sizeof(float), RECT_COORDS);
     glVertexAttribPointer(mTriangleProgram->texCoordAHandle, 2, GL_FLOAT, GL_FALSE, 6* sizeof(float), RECT_COORDS + 4);
     glEnableVertexAttribArray(mTriangleProgram->positionAHandle);
@@ -147,7 +151,48 @@ void renderFrame() {
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glDisableVertexAttribArray(mTriangleProgram->positionAHandle);
     glDisableVertexAttribArray(mTriangleProgram->texCoordAHandle);
+}
+void renderFrame() {
+    mvp.make_identity();
+    //cc.set_scale(.6f);
+    mvp = tree.getProjectionMatrix(m_ScreenWidth, m_ScreenHeight);
+    matrix4f rop, top, tmp;
+    tmp.make_identity();
+    tmp = nv::rotationY(tmp, mAngleY);
+    rop = tmp;// * nv::rotationX(rop, mAngleX);
+
+    top.set_translate(nv::vec3f(0, 0, -2.0f + mAngleX));
+    top = top * rop;
+    mvp *= top;
+
+    float depth = 0.0;
+
+    glClearColor(0.0, 0, 0, 1.0f);
+    glClear( GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+
+    mTriangleProgram->enable();
+    checkGlError("glUseProgram");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_TexID);
+    glUniform1i(mTriangleProgram->texUHandle, 0);
+    mTriangleProgram->setUniformMatrix4fv("uMVP", mvp._array, 1, GL_FALSE);
+
+    tree.draw(mTriangleProgram->positionAHandle);
     mTriangleProgram->disable();
+    depth = 0.0;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    //glReadBuffer(GL_DEPTH_ATTACHMENT);
+    glReadPixels(m_PreviousX,//x坐标
+                 m_ScreenHeight - m_PreviousY,//y坐标
+                 1,1,//读取一个像素
+                 GL_DEPTH_COMPONENT,//获得深度信息
+                 GL_FLOAT,//数据类型为浮点型
+                 &depth);//获得的深度值保存在winZ中
+    if(depth > 0.0001f)
+        LOGI("depth = %f", depth);
+
 }
 
 #ifdef __cplusplus
