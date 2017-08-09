@@ -9,7 +9,7 @@ using nv::vec3f;
 class Triangle {
 public:
     vec3f V[3];
-
+    Triangle(){}
     Triangle(vec3f& v0, vec3f& v1, vec3f& v2);
 };
 

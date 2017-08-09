@@ -36,6 +36,8 @@
 
 #include "NvModel.h"
 #include <vector>
+#include <map>
+#include <string>
 #include "../baseGraphics/NvMath.h"
 
 /// \file
@@ -117,7 +119,8 @@ public:
 	bool hasTangents() const { return _sTangents.size() > 0; }
 	bool hasColors() const { return _colors.size() > 0; }
 	///@}
-
+    std::vector<float> getPositionsByObjectName(std::string& name);
+    std::vector<std::string>& getObjectList();
 protected:
 	NvModelObj() { }
 
@@ -127,6 +130,10 @@ protected:
     std::vector<float> _texCoords;
     std::vector<float> _sTangents;
     std::vector<float> _colors;
+
+	std::map<std::string, std::vector<float> >   _positionsByObjectName;
+    std::vector<std::string> _objectsList;
+    std::string _currentObjectName;
 
     std::vector<uint32_t> _pIndex;
     std::vector<uint32_t> _nIndex;

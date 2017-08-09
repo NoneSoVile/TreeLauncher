@@ -21,12 +21,16 @@
 #include <baseGraphics/NvGLSLProgram.h>
 #include <baseGraphics/NvImageGL.h>
 #include "Tree.h"
-nv::matrix4<float>  mvp;
-nv::matrix4<float>  scaleM;
+
+
 using nv::matrix4f;
 using nv::vec4f;
 Tree tree;
-
+matrix4f  mvp;
+matrix4f scaleM;
+matrix4f viewMatrix;
+matrix4f modelMatrix;
+vec3f eye(0, 0, 0), at(0, 0, -1), up(0, 1, 0);
 float m_PreviousX, m_PreviousY, m_DeltaX, m_DeltaY;
 float mAngleY = 0.0f, mAngleX = 0.0f;
 int m_ScreenWidth, m_ScreenHeight;
@@ -154,16 +158,12 @@ void drawQuad(){
 }
 void renderFrame() {
     mvp.make_identity();
-    //cc.set_scale(.6f);
+    viewMatrix.make_identity();
     mvp = tree.getProjectionMatrix(m_ScreenWidth, m_ScreenHeight);
-    matrix4f rop, top, tmp;
-    tmp.make_identity();
-    tmp = nv::rotationY(tmp, mAngleY);
-    rop = tmp;// * nv::rotationX(rop, mAngleX);
-
-    top.set_translate(nv::vec3f(0, 0, -2.0f + mAngleX));
-    top = top * rop;
-    mvp *= top;
+    viewMatrix = tree.getViewMatrix(eye, at, up);
+    modelMatrix = tree.getModelMatrix(mAngleX, mAngleY, mAngleY);
+    viewMatrix *= modelMatrix;
+    mvp *= viewMatrix;
 
     float depth = 0.0;
 
@@ -180,18 +180,6 @@ void renderFrame() {
 
     tree.draw(mTriangleProgram->positionAHandle);
     mTriangleProgram->disable();
-    depth = 0.0;
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    //glReadBuffer(GL_DEPTH_ATTACHMENT);
-    glReadPixels(m_PreviousX,//x坐标
-                 m_ScreenHeight - m_PreviousY,//y坐标
-                 1,1,//读取一个像素
-                 GL_DEPTH_COMPONENT,//获得深度信息
-                 GL_FLOAT,//数据类型为浮点型
-                 &depth);//获得的深度值保存在winZ中
-    if(depth > 0.0001f)
-        LOGI("depth = %f", depth);
 
 }
 

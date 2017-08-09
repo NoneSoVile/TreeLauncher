@@ -26,6 +26,8 @@ LOCAL_SRC_FILES := launcher-jni.cpp  \
                    baseShapes\Ray.cpp \
                    baseShapes\Triangle.cpp \
                    baseShapes\IntrRayTriangle.cpp \
+                   baseShapes\Quad.cpp   \
+                   Model\tiny_obj_loader.cc \
 
 LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv2 -ljnigraphics
 LOCAL_STATIC_LIBRARIES := cpufeatures

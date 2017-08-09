@@ -6,9 +6,15 @@
 #define TREELAUNCHER_TREE_H
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
+#include <string>
+#include <vector>
 #include "baseGraphics/NvMath.h"
+#include "baseShapes/Quad.h"
 using nv::vec4f;
+using nv::vec3f;
 using nv::matrix4f;
+using std::vector;
+using std::string;
 class NvModelGL;
 class Tree {
 public:
@@ -17,10 +23,17 @@ public:
     void draw(GLint positionHandle);
     vec4f unProject(matrix4f& mvp, vec4f& inVec, int viewWith, int viewHeight);
     matrix4f& getProjectionMatrix(float viewWith, float viewHeight);
+    matrix4f& getViewMatrix(vec3f& eye, vec3f& at, vec3f& up);
+    matrix4f& getModelMatrix(float angleX, float angleY, float angleZ);
+    bool testHit(int screenX, int screenY);
 
 private:
     NvModelGL* mTreeModel;
     matrix4f mProjectionMatrix;
+    matrix4f mViewMatrix;
+    matrix4f mModelMatrix;
+    vector<string> mQuadObjectNames;
+    vector<Quad>  mQuads;
 };
 
 

@@ -129,6 +129,7 @@ bool NvModelObj::loadFromFileData(uint8_t* fileData)
     NvTokenizer tok((const char*)fileData, "/");
     
     float val[4];
+    char outString[100] = {0};
     int32_t idx[3][3];
     int32_t match;
     char format = 0;
@@ -136,6 +137,7 @@ bool NvModelObj::loadFromFileData(uint8_t* fileData)
     bool tex3Comp = false;
     bool hasTC = false;
     bool hasNormals = false;
+    std::map< std::string, std::vector<float> >::iterator it;
 
 #if 0 //def _DEBUG
     tok.setVerbose();
@@ -155,7 +157,16 @@ bool NvModelObj::loadFromFileData(uint8_t* fileData)
                 //comment line, eat the remainder
                 tok.consumeToEOL();
                 break;
-
+			case 'o':
+                switch (tmp[1]) {
+                    case '\0':
+                        bool ret = tok.getTokenString(outString, 100);
+                        _currentObjectName = outString;
+                        std::vector<float> mesh;
+                        _positionsByObjectName.insert(std::make_pair(_currentObjectName, mesh));
+                        _objectsList.push_back(_currentObjectName);
+                }
+				break;
             case 'v':
                 switch (tmp[1]) {
                     case '\0':
@@ -166,6 +177,13 @@ bool NvModelObj::loadFromFileData(uint8_t* fileData)
                         _positions.push_back( val[1]);
                         _positions.push_back( val[2]);
                         _positions.push_back( val[3]);
+                        it = _positionsByObjectName.find(_currentObjectName);
+                        if(it != _positionsByObjectName.end()){
+                            std::vector<float>& values = it->second;
+                            values.push_back( val[0]);
+                            values.push_back( val[1]);
+                            values.push_back( val[2]);
+                        }
                         vtx4Comp |= ( match == 4);
                         NV_ASSERT( match > 2 && match < 5);
                         break;
@@ -1030,4 +1048,17 @@ void NvModelObj::removeDegeneratePrims() {
 	if (hasColors())
 		_cIndex.resize(_cIndex.size() - degen * 3);
 
+}
+
+std::vector<float> NvModelObj::getPositionsByObjectName(std::string& name){
+    std::vector<float> result;
+    map<std::string, vector<float> >::iterator it =   _positionsByObjectName.find(name);
+    if(it != _positionsByObjectName.end()){
+        result = it->second;
+    }
+    return result;
+}
+
+std::vector<std::string>& NvModelObj::getObjectList(){
+    return _objectsList;
 }
