@@ -125,15 +125,7 @@ void updateTouchParameters(int x, int y, int deltaX, int deltaY)
     mAngleX += deltaY * 0.01f;
     mAngleY -= deltaX * 0.01f;
 
-    float depth = 0.0;
-    glReadPixels(x,//x坐标
-                m_ScreenHeight - y,//y坐标
-                 1,1,//读取一个像素
-                 GL_DEPTH_COMPONENT,//获得深度信息
-                 GL_FLOAT,//数据类型为浮点型
-                 &depth);//获得的深度值保存在winZ中
-    LOGI("depth = %f", depth);
-    checkGlError("glReadPixels");
+    tree.testHit(x, y);
 
 }
 

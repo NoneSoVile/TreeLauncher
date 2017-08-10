@@ -1,6 +1,10 @@
 
 #include "IntrRayTriangle.h"
 #include "../baseGraphics/Common.h"
+#define  LOG_TAG    "tree"
+#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
+#include <android/log.h>
 using nv::dot;
 using nv::vec3f;
 
@@ -35,6 +39,7 @@ bool IntrRayTriangle::Test()
     //   |Dot(D,N)|*b2 = sign(Dot(D,N))*Dot(D,Cross(E1,Q))
     //   |Dot(D,N)|*t = -sign(Dot(D,N))*Dot(Q,N)
     float DdN = dot(mRay->Direction, normal);//  Dot(normal);
+
     float sign;
     if (DdN > ZERO_TOLERANCE)
     {
@@ -54,11 +59,13 @@ bool IntrRayTriangle::Test()
     }
 
     float DdQxE2 = sign * dot(mRay->Direction, diff.cross(edge2));//sign*mRay->Direction.Dot(diff.Cross(edge2));
+
     if (DdQxE2 >= (float)0)
     {
-        float DdE1xQ = sign * dot(mRay->Direction, diff.cross(edge1));
+        float DdE1xQ = sign * dot(mRay->Direction, edge1.cross(diff));
         if (DdE1xQ >= (float)0)
         {
+            LOGI("Ddn = %f  DdQxE2 = %f DdE1xQ = %f", DdN, DdQxE2, DdE1xQ);
             if (DdQxE2 + DdE1xQ <= DdN)
             {
                 // Line intersects triangle, check if ray does.
@@ -69,6 +76,7 @@ bool IntrRayTriangle::Test()
                     mIntersectionType = IT_POINT;
                     return true;
                 }
+                //return true;
                 // else: t < 0, no intersection
             }
             // else: b1+b2 > 1, no intersection

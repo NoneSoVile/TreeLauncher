@@ -25,15 +25,19 @@ public:
     matrix4f& getProjectionMatrix(float viewWith, float viewHeight);
     matrix4f& getViewMatrix(vec3f& eye, vec3f& at, vec3f& up);
     matrix4f& getModelMatrix(float angleX, float angleY, float angleZ);
-    bool testHit(int screenX, int screenY);
+    bool testHit(float screenX, float screenY);
 
 private:
     NvModelGL* mTreeModel;
+    float mFovy;
+    float mAspect;
+    float mNear, mFar;
+    float mViewWidth, mViewHeight;
     matrix4f mProjectionMatrix;
     matrix4f mViewMatrix;
     matrix4f mModelMatrix;
     vector<string> mQuadObjectNames;
-    vector<Quad>  mQuads;
+    vector<Quad*>  mQuads;
 };
 
 

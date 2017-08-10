@@ -8,5 +8,5 @@
 #include <GLES2/gl2ext.h>
 #include "../baseGraphics/NvMatrix.h"
 #include "../baseGraphics/NvMath.h"
-#define  ZERO_TOLERANCE 1e-08
+#define  ZERO_TOLERANCE 1e-05
 #endif //TREELAUNCHER_COMMON_H
