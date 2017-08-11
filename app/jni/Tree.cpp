@@ -8,6 +8,7 @@
 #include "Model/NvModelObj.h"
 #include "baseShapes/Ray.h"
 #include "baseShapes/IntrRayTriangle.h"
+#include "baseGraphics/NvGLSLProgram.h"
 #include <string>
 #include <vector>
 #define  LOG_TAG    "tree"
@@ -32,11 +33,16 @@ void Tree::initModel(){
             (uint8_t *)modelData, -1.0f, true, false);
     NvAssetLoaderFree(modelData);
 
+    modelData = NvAssetLoaderRead("models/quads.obj", length);
+    mQuadsModel = NvModelGL::CreateFromObj(
+            (uint8_t *)modelData, -1.0f, true, false);
+    NvAssetLoaderFree(modelData);
+
     //test
-    NvModelObj* model = (NvModelObj*)mTreeModel->getModel();
+    NvModelObj* model = (NvModelObj*)mQuadsModel->getModel();
     vector<string> allObjectNames = model->getObjectList();
     for(int i = 0; i < allObjectNames.size(); i++){
-        if(allObjectNames[i].find("_Plane") != -1){
+        if(allObjectNames[i].find("Plane") != -1){
             mQuadObjectNames.push_back(allObjectNames[i]);
             std::vector<float> positions = model->getPositionsByObjectName(allObjectNames[i]);
             int size = positions.size();
@@ -61,10 +67,21 @@ void Tree::initModel(){
 }
 void Tree::draw(GLint positionHandle){
     if(mTreeModel != NULL){
+
         mTreeModel->drawElements(positionHandle);
     }
     for (int i = 0; i < mQuads.size(); ++i) {
         mQuads[i]->draw(positionHandle);
+    }
+}
+
+void Tree::draw(NvGLSLProgram* glslProgram, GLint positionHandle){
+    if(mTreeModel != NULL){
+        glslProgram->setUniform4fv("u_color", vec4f(0, 0, 1, 1), 1);
+        mTreeModel->drawElements(positionHandle);
+    }
+    for (int i = 0; i < mQuads.size(); ++i) {
+        mQuads[i]->draw(glslProgram, positionHandle);
     }
 }
 
@@ -137,7 +154,10 @@ bool Tree::testHit(float screenX, float screenY){
     matrix4f mv = v * m;
     for(int i = 0; i < mQuads.size(); i++){
         Quad& quad = *(mQuads[i]);
+        bool pressed = false;
         for(int j = 0; j < 2; j++) {
+            if(pressed)
+                continue;
             vec3f v0 ((mv * vec4f(quad.tri[j].V[0], 1)));
             vec3f v1 ( (mv * vec4f(quad.tri[j].V[1], 1)));
             vec3f v2 ( (mv * vec4f(quad.tri[j].V[2], 1)));
@@ -146,7 +166,11 @@ bool Tree::testHit(float screenX, float screenY){
             LOGI("Triangle %s (%f %f , %f %f , %f %f )", quad.mObjectName.c_str(),
                v0.x, v0.y,   v1.x, v1.y,   v2.x, v2.y);
             if (intersectTest.Test()) {
+                quad.onPressed(true);
+                pressed = true;
                 LOGI("Hit quad object %s", quad.mObjectName.c_str());
+            }else{
+                quad.onPressed(false);
             }
         }
     }

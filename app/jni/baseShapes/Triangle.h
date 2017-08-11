@@ -8,6 +8,7 @@
 #include <string>
 using std::string;
 using nv::vec3f;
+class NvGLSLProgram;
 class Triangle {
 public:
     vec3f V[3];

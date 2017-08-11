@@ -170,7 +170,7 @@ void renderFrame() {
     glUniform1i(mTriangleProgram->texUHandle, 0);
     mTriangleProgram->setUniformMatrix4fv("uMVP", mvp._array, 1, GL_FALSE);
 
-    tree.draw(mTriangleProgram->positionAHandle);
+    tree.draw(mTriangleProgram, mTriangleProgram->positionAHandle);
     mTriangleProgram->disable();
 
 }

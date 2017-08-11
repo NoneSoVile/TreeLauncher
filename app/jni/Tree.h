@@ -16,11 +16,13 @@ using nv::matrix4f;
 using std::vector;
 using std::string;
 class NvModelGL;
+class NvGLSLProgram;
 class Tree {
 public:
     Tree();
     void initModel();
     void draw(GLint positionHandle);
+    void draw(NvGLSLProgram* glslProgram, GLint positionHandle);
     vec4f unProject(matrix4f& mvp, vec4f& inVec, int viewWith, int viewHeight);
     matrix4f& getProjectionMatrix(float viewWith, float viewHeight);
     matrix4f& getViewMatrix(vec3f& eye, vec3f& at, vec3f& up);
@@ -29,6 +31,7 @@ public:
 
 private:
     NvModelGL* mTreeModel;
+    NvModelGL* mQuadsModel;
     float mFovy;
     float mAspect;
     float mNear, mFar;

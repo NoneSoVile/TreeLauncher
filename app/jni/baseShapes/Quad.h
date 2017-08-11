@@ -9,15 +9,20 @@
 #include <string>
 using std::string;
 using nv::vec3f;
+using nv::vec4f;
+class NvGLSLProgram;
 class Quad {
 public:
     vec3f V[4];
     Triangle tri[2];
-    float V_Buffer[6*3];
+    float V_Buffer[4*3];
+    vec4f V_Color;
     string mObjectName;
 
     Quad(string& objectName, vec3f& v0, vec3f& v1, vec3f& v2, vec3f& v3);
     void draw(GLint positionHandle);
+    void draw(NvGLSLProgram* glslProgram, GLint positionHandle);
+    void onPressed(bool pressed);
 };
 
 

@@ -170,13 +170,15 @@ bool NvModelObj::loadFromFileData(uint8_t* fileData)
             case 'v':
                 switch (tmp[1]) {
                     case '\0':
-                        //vertex, 3 or 4 components
-                        val[3] = 1.0f;  //default w coordinate
+                        val[3] = 1.0f;
                         match = tok.getTokenFloatArray(val, 4);
-                        _positions.push_back( val[0]);
-                        _positions.push_back( val[1]);
-                        _positions.push_back( val[2]);
-                        _positions.push_back( val[3]);
+                        //if(_currentObjectName.find("Plane") == -1)
+                        {
+                            _positions.push_back(val[0]);
+                            _positions.push_back(val[1]);
+                            _positions.push_back(val[2]);
+                            _positions.push_back(val[3]);
+                        }
                         it = _positionsByObjectName.find(_currentObjectName);
                         if(it != _positionsByObjectName.end()){
                             std::vector<float>& values = it->second;
@@ -191,19 +193,27 @@ bool NvModelObj::loadFromFileData(uint8_t* fileData)
                     case 'n':
                         //normal, 3 components
                         match = tok.getTokenFloatArray(val, 3);
-                        _normals.push_back( val[0]);
-                        _normals.push_back( val[1]);
-                        _normals.push_back( val[2]);
-                        NV_ASSERT( match == 3);
+                        //if(_currentObjectName.find("Plane") == -1)
+                        {
+
+                            _normals.push_back(val[0]);
+                            _normals.push_back(val[1]);
+                            _normals.push_back(val[2]);
+                            NV_ASSERT(match == 3);
+                        }
                         break;
 
                     case 't':
                         //texcoord, 2 or 3 components
                         val[2] = 0.0f;  //default r coordinate
                         match = tok.getTokenFloatArray(val, 3);
-                        _texCoords.push_back( val[0]);
-                        _texCoords.push_back( val[1]);
-                        _texCoords.push_back( val[2]);
+                        //if(_currentObjectName.find("Plane") == -1)
+                        {
+                            _texCoords.push_back(val[0]);
+                            _texCoords.push_back(val[1]);
+                            _texCoords.push_back(val[2]);
+
+                        }
                         tex3Comp |= ( match == 3);
                         NV_ASSERT( match > 1 && match < 4);
                         break;
@@ -223,6 +233,12 @@ bool NvModelObj::loadFromFileData(uint8_t* fileData)
                 // 2  #/#
                 // 3  #/#/#
                 // 4  #//#
+                //added by leejb
+                if(_currentObjectName.find("Plane") != -1){
+                    //tok.consumeToEOL();
+                    //break;
+                }
+                //added by leejb
 
                 // we need to 'hand read' the first run, to decode the formatting.
                 format = 0;
